@@ -7,8 +7,8 @@
 per i comandi (in ```bg``` o ```fg```) terminati da un segnale, informare analogamente l'utente. A tal scopo può essere utile l'opzione ```WNOHANG``` della ```wait``` (vedere ```man```)   
 * Ammettere la possibilità di interrompere un comando con il segnale di interruzione, senza però interrompere anche l'interprete (che è ciò che avviene nella versione fornita). 
 L’'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground, mentre deve poter essere interrotto negli altri casi.  
-* ammettere la redirezione dello standard ouput su un file con la notazione: ```comando > file``` nel caso file non esistesse deve essere creato. 
-* ammettere la redirezione dello standard ouput su un file in modalità APPEND con la notazione:
+* Ammettere la redirezione dello standard ouput su un file con la notazione: ```comando > file``` nel caso file non esistesse deve essere creato. 
+* Ammettere la redirezione dello standard ouput su un file in modalità APPEND con la notazione:
 ```comando >> file```
 (necessario per ottenere la lode per la parte di Laboratorio)
 
