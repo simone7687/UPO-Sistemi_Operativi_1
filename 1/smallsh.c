@@ -74,7 +74,8 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         perror(*cline);
         exit(1);
     }
-    else if(where != BACKGROUND)
+    // Background commands (&) #1
+    else if(where != BACKGROUND) /* processo padre */
     {
         ret = wait(&exitstat);
 
