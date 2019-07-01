@@ -100,8 +100,17 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     }
 }
 
+void sigint_handler(int sig_num) 
+{ 
+    signal(SIGINT, sigint_handler); 
+    fflush(stdout); 
+} 
+
 int main()
 {
+    // Possibilità di interrompere un comando #3
+    signal(SIGINT, sigint_handler); 
+
     while(userin(prompt) != EOF)
     procline();
 }
