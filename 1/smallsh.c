@@ -81,6 +81,23 @@ void runcommand(char **cline,int where)	/* esegue un comando */
 
         if (ret == -1) perror("wait");
     }
+    // Informazioni sul fatto che il comando è terminato #2
+    else    
+    {
+        pid = fork();
+
+        if (pid == (pid_t) -1) 
+        {
+            perror("smallsh: fork fallita");
+            return;
+        }
+        if (pid != (pid_t) 0) /* processo padre */
+        {
+            ret = wait(&exitstat);
+            if (ret == -1) perror("wait");
+            printf("Esecuzione terminata\n");
+        }
+    }
 }
 
 int main()
