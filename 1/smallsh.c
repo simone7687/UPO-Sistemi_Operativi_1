@@ -1,5 +1,6 @@
 #include "smallsh.h"
 #include <sys/types.h>
+#include <signal.h> 
 
 char *prompt = "Dare un comando>";
 
