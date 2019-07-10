@@ -83,6 +83,8 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     {
         /* esegue il comando il cui nome e' il primo elemento di cline,
         passando cline come vettore di argomenti */
+
+        // Redirezione dello standard ouput su un file #4
         if (fd != 0)
         {
             if (ret < 0)
