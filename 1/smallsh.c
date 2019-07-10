@@ -4,6 +4,7 @@
 #include <fcntl.h>  // tipi di apertura file
 
 char *prompt = "Dare un comando>";
+void sigint_handler(int sig_num);
 int fd = 0;
 
 int procline(void) 	/* tratta una riga di input */
@@ -73,6 +74,11 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         return;
     }
 
+    // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
+    if (where == FOREGROUND)
+    {
+        signal(SIGINT, SIG_IGN); 
+    }
     if (pid == (pid_t) 0) /* processo figlio */
     {
         /* esegue il comando il cui nome e' il primo elemento di cline,
@@ -122,6 +128,11 @@ void runcommand(char **cline,int where)	/* esegue un comando */
             if (ret == -1) perror("wait");
             printf("Esecuzione terminata\n");
         }
+    }
+    // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
+    if (where == FOREGROUND)
+    {
+        signal(SIGINT, sigint_handler);
     }
 }
 
