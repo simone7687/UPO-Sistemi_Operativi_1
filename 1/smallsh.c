@@ -114,7 +114,6 @@ void runcommand(char **cline,int where)	/* esegue un comando */
 
         if (ret == -1) perror("wait");
     }
-    // Informazioni sul fatto che il comando è terminato #2
     else    
     {
         pid = fork();
@@ -128,8 +127,20 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         {
             ret = wait(&exitstat);
             if (ret == -1) perror("wait");
-            printf("Esecuzione terminata\n");
         }
+    }
+    // Informazioni sul fatto che il comando è terminato #2
+    if(pid != 0)
+    {
+        ret = waitpid(pid, &exitstat, WNOHANG);
+        if (WTERMSIG(exitstat) == 2)
+        {printf("\nEsecuzione terminata con CTRL-C\n\n");}
+        else if (where == BACKGROUND)
+        {printf("Esecuzione terminata\n\n");}
+        else if (WIFSIGNALED(exitstat) != 0)
+        {printf("\nEsecuzione terminata per mezzo di un segnale non gestito\n\n");}
+        else if (!WIFEXITED(exitstat))
+        {printf("\nEsecuzione terminata in modo anomalo\n\n");}
     }
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
     if (where == FOREGROUND)
