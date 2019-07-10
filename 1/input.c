@@ -1,15 +1,17 @@
 #include "smallsh.h"
+#include <string.h>
 
 /* buffers per la riga di input e la sua segmentazione in "tokens";
 puntatori per scorrere i buffers */
 
 static char inpbuf[MAXBUF], tokbuf[2*MAXBUF], *ptr, *tok;
+void file_path();
 
 /* array di caratteri che hanno una interpretazione "speciale" 
 nei comandi */
 
 static char special[]=
-{' ', '\t', '&', ';', '\n', '\0'};
+{' ', '\t', '&', ';', '\n', '\0', '>'};
 
 int userin(char *p) /* stampa il prompt e legge una riga */
 {
@@ -87,6 +89,9 @@ int gettok(char **outptr)   /* legge un simbolo e lo mette in tokbuf */
         type = AMPERSAND; break;
         case ';':
         type = SEMICOLON; break;
+        case '>':
+        file_path();
+        type = REDIRECT; break;
         default:
         type = ARG;
         /* copia gli altri caratteri del simbolo */
@@ -111,3 +116,37 @@ int inarg(char c)   /* verifica se c non e' un carattere speciale */
     return(1);
 }
 
+void dellet_pathname()
+{
+    int l = strlen(pathname);
+    for (int i = 0; i <= l; i++)   
+    {
+        pathname[i] = NULL;
+    }
+}
+
+void file_path()
+{
+    int i = 0;
+    int l = strlen(inpbuf);
+    dellet_pathname();
+    *tok++ = *ptr++;    // salta > in gettok
+    // trova >
+    while(inpbuf[i] != '>' && i <= l)
+    {
+        i++;
+    }
+    i++;
+    // salta gli spazzi
+    while(inpbuf[i] == ' ' && i <= l)
+    {
+        i++;
+    }
+    // copia il percorso del file in pathname
+    for (int j = 0; inpbuf[i] != ' ' && inpbuf[i] != '\n' && i <= l-1; j++)   
+    {
+        pathname[j] = inpbuf[i];
+        i++;
+        *tok++ = *ptr++;    // salta percorso file in gettok
+    }
+}

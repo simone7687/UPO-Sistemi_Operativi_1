@@ -1,8 +1,10 @@
 #include "smallsh.h"
 #include <sys/types.h>
 #include <signal.h> 
+#include <fcntl.h>  // tipi di apertura file
 
 char *prompt = "Dare un comando>";
+int fd = 0;
 
 int procline(void) 	/* tratta una riga di input */
 {
@@ -10,6 +12,7 @@ int procline(void) 	/* tratta una riga di input */
     int toktype;  	/* tipo del simbolo nel comando */
     int narg;		/* numero di argomenti considerati finora */
     int type;		/* FOREGROUND o BACKGROUND */
+    fd = 0;
 
     narg=0;
 
@@ -50,6 +53,10 @@ int procline(void) 	/* tratta una riga di input */
 
             narg = 0;
             break;
+
+            case REDIRECT:
+            fd = open(pathname, O_CREAT|O_APPEND|O_WRONLY);
+            break;
         }
     }
 }
@@ -70,6 +77,23 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     {
         /* esegue il comando il cui nome e' il primo elemento di cline,
         passando cline come vettore di argomenti */
+        if (fd != 0)
+        {
+            if (ret < 0)
+            {
+                perror("open");
+                exit(1);
+            }
+
+            ret = dup2(fd, 1);
+
+            if (ret < 0)
+            {
+                perror("dup2");
+                exit(1);
+            }
+            close(fd);
+        }
 
         execvp(*cline,cline);
         perror(*cline);

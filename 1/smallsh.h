@@ -8,6 +8,7 @@
 #define ARG 2		/* argomento normale */
 #define AMPERSAND 3 	/* & */
 #define SEMICOLON 4	/* ; */
+#define REDIRECT 5  /* > */
 
 #define MAXARG 512	/* numero massimo di argomenti */
 #define MAXBUF 512	/* lunghezza massima riga di input */
@@ -24,3 +25,5 @@ int gettok(char **outptr);	/* legge un simbolo */
 int procline();			/* tratta una riga di input */
 
 void runcommand(char **cline,int where);	/* esegue un comando */
+
+char pathname[MAXBUF];  /* percorso file */
