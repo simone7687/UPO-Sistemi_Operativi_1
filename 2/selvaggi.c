@@ -27,6 +27,7 @@ void * Selvaggio()
         // se non ci sono porzioni
         if (pentola == 0)
         {
+            printf("La pentola e' VUOTA\n");
             // sveglia il cuoco
             // attende che il cuoco abbia completamente
         }
@@ -34,13 +35,17 @@ void * Selvaggio()
         if (pentola > 0)
         {
             pentola--;
+            printf("Selvaggio n%d ha MANGIATO\n", id);
         }
         // Ciascun selvaggio deve mangiare NGIRI #8
         else
         {
             i--;
+            printf("Selvaggio n%d e' stato LENTO\n", id);
         }
+        printf("Al selvaggio n%d mancano ancora %d porzioni\n", id, i);
     }
+    printf("Selvaggio n%d e' SAZZIO\n", id);
     pthread_exit(NULL);
 }
 
