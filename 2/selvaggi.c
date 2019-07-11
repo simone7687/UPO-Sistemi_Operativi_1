@@ -45,7 +45,7 @@ void * Selvaggio()
         }
         printf("Al selvaggio %d mancano ancora %d porzioni\n", id, i);
     }
-    printf("Selvaggio %d e' SAZZIO\n", id);
+    printf("Selvaggio %d e' SAZIO\n", id);
     pthread_exit(NULL);
 }
 
