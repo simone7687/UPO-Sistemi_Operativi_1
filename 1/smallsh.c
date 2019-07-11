@@ -157,8 +157,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
 
 void sigint_handler(int sig_num) 
 { 
-    signal(SIGINT, sigint_handler); 
-    fflush(stdout); 
+    kill(-1, SIGINT);   // il segnale SIGINT e' inviato ad ogni processo eccetto per il primo
 } 
 
 int main()
