@@ -139,7 +139,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     if(pid != 0)
     {
         ret = waitpid(pid, &exitstat, WNOHANG);
-        if (WTERMSIG(exitstat) == 2)
+        if (WTERMSIG(exitstat) == SIGINT)
         {printf("\nEsecuzione terminata con CTRL-C\n\n");}
         else if (where == BACKGROUND)
         {printf("Esecuzione terminata\n\n");}
