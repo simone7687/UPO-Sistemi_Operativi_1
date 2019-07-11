@@ -5,7 +5,7 @@
 puntatori per scorrere i buffers */
 
 static char inpbuf[MAXBUF], tokbuf[2*MAXBUF], *ptr, *tok;
-void file_path();
+int file_path();
 
 /* array di caratteri che hanno una interpretazione "speciale" 
 nei comandi */
@@ -90,8 +90,7 @@ int gettok(char **outptr)   /* legge un simbolo e lo mette in tokbuf */
         case ';':
         type = SEMICOLON; break;
         case '>':
-        file_path();
-        type = REDIRECT; break;
+        type = file_path(); break;
         default:
         type = ARG;
         /* copia gli altri caratteri del simbolo */
@@ -125,11 +124,12 @@ void dellet_pathname()  /* elimina tutti i caratteri di pathname */
     }
 }
 
-void file_path()
+int file_path() /* copia il percorso file in pathname, ritorna REDIRECT o APPEND */
 {
     int i = 0;
     int l = strlen(inpbuf);
-    dellet_pathname();
+    int x = REDIRECT;
+    dellet_pathname();  // strcpy(pathname, "");
     *tok++ = *ptr++;    // salta > in gettok
     // trova >
     while(inpbuf[i] != '>' && i <= l)
@@ -137,6 +137,13 @@ void file_path()
         i++;
     }
     i++;
+    // Redirezione dello standard ouput su un file in modalità APPEND #5
+    if (inpbuf[i] == '>')
+    {
+        i++;
+        *tok++ = *ptr++;    // salta > in gettok
+        x = APPEND;
+    }
     // salta gli spazzi
     while(inpbuf[i] == ' ' && i <= l)
     {
@@ -149,4 +156,5 @@ void file_path()
         i++;
         *tok++ = *ptr++;    // salta percorso file in gettok
     }
+    return x;
 }

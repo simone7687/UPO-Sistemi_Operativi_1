@@ -9,6 +9,7 @@
 #define AMPERSAND 3 	/* & */
 #define SEMICOLON 4	/* ; */
 #define REDIRECT 5  /* > */
+#define APPEND 6     /* >> */
 
 #define MAXARG 512	/* numero massimo di argomenti */
 #define MAXBUF 512	/* lunghezza massima riga di input */

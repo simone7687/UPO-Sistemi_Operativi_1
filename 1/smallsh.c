@@ -62,6 +62,14 @@ int procline(void) 	/* tratta una riga di input */
                 exit(1);
             }
             break;
+            // Redirezione dello standard ouput su un file in modalità APPEND #5
+            case APPEND:
+            if((fd = open(pathname, O_CREAT|O_APPEND|O_WRONLY)) < 0)
+            {
+                perror("open");
+                exit(1);
+            }
+            break; 
         }
     }
 }
