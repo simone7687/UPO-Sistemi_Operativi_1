@@ -33,6 +33,10 @@ void Selvaggio()
         {
             pentola--;
         }
+        // Ciascun selvaggio deve mangiare NGIRI #8
+        else
+        {
+            i++;
         }
     }
 }
