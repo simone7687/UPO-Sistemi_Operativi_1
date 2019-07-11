@@ -8,7 +8,7 @@ int M;  /* numero porzioni */
 int NGIRI;  /* numero giri */
 int pentola;    /* pentola (puo' contenere fino ad M porzioni) */
 
-Cuoco()
+void * Cuoco()
 {
     while (1)
     {
@@ -16,9 +16,11 @@ Cuoco()
         // <riempi pentola>
         up(M);      // pentola piena
     }
+    pthread_exit(NULL);
 }
-void Selvaggio()
+void * Selvaggio()
 {
+    int id = pthread_self();
     // Quando un selvaggio ha fame #6
     for (int i=0; i<NGIRI; i++)
     {
@@ -39,6 +41,7 @@ void Selvaggio()
             i--;
         }
     }
+    pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[])
@@ -55,4 +58,27 @@ int main(int argc, char *argv[])
     printf("numero selvaggi = %d  \nnumero porzioni = %d  \nnumero giri     = %d\n", N, M, NGIRI);
     
     pentola = M;
+    // thread cuoco
+    pthread_t cuoco;
+    if (pthread_create(&cuoco, NULL, Selvaggio, NULL))
+    {
+        perror("thread cuoco");
+    }
+    // thread selvaggi
+    pthread_t selvaggi[N];
+    for (int i=0; i<N; i++)
+    {
+        if (pthread_create(&selvaggi[i], NULL, Selvaggio, NULL))
+        {
+            perror("thread selvaggi");
+        }
+    }
+    // attende i selvaggi
+    for (int i=0; i<N; i++)
+    {
+        if (pthread_join(selvaggi[i], NULL))
+        {
+            perror("attende i selvaggi");
+        }
+    }
 }
