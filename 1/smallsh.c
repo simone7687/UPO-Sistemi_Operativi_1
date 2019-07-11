@@ -29,7 +29,7 @@ int procline(void) 	/* tratta una riga di input */
             case ARG:
 
             if (narg < MAXARG)
-                narg++;
+                {narg++;}
                 break;
 
             /* se fine riga o ';' o '&' esegue il comando ora contenuto in arg,
