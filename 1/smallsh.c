@@ -54,9 +54,13 @@ int procline(void) 	/* tratta una riga di input */
 
             narg = 0;
             break;
-
+            // Redirezione dello standard ouput su un file #4
             case REDIRECT:
-            fd = open(pathname, O_CREAT|O_APPEND|O_WRONLY);
+            if((fd = open(pathname, O_CREAT|O_WRONLY|O_TRUNC)) < 0) // = creat(pathname)
+            {
+                perror("creat");
+                exit(1);
+            }
             break;
         }
     }
@@ -87,12 +91,6 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         // Redirezione dello standard ouput su un file #4
         if (fd != 0)
         {
-            if (ret < 0)
-            {
-                perror("open");
-                exit(1);
-            }
-
             ret = dup2(fd, 1);
 
             if (ret < 0)

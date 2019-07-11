@@ -116,12 +116,12 @@ int inarg(char c)   /* verifica se c non e' un carattere speciale */
     return(1);
 }
 
-void dellet_pathname()
+void dellet_pathname()  /* elimina tutti i caratteri di pathname */
 {
     int l = strlen(pathname);
     for (int i = 0; i <= l; i++)   
     {
-        pathname[i] = NULL;
+        pathname[i] = '\0'; // pathname[i] = NULL
     }
 }
 
@@ -143,7 +143,7 @@ void file_path()
         i++;
     }
     // copia il percorso del file in pathname
-    for (int j = 0; inpbuf[i] != ' ' && inpbuf[i] != '\n' && i <= l-1; j++)   
+    for (int j = 0; inpbuf[i] != ' ' && inpbuf[i] != '\n' && inpbuf[i] != '\0' && i <= l-1; j++)   
     {
         pathname[j] = inpbuf[i];
         i++;
