@@ -5,7 +5,7 @@
 
 char *prompt = "Dare un comando>";
 void sigint_handler(int sig_num);
-int fd = 0;
+int fd = 0; /* file */
 
 int procline(void) 	/* tratta una riga di input */
 {
@@ -56,7 +56,7 @@ int procline(void) 	/* tratta una riga di input */
             break;
             // Redirezione dello standard ouput su un file #4
             case REDIRECT:
-            if((fd = open(pathname, O_CREAT|O_WRONLY|O_TRUNC)) < 0) // = creat(pathname)
+            if((fd = open(pathname, O_CREAT|O_WRONLY|O_TRUNC)) < 0) // se non esiste viene creato, solo scrittura, file esistente verra' troncato = creat()
             {
                 perror("creat");
                 exit(1);
@@ -64,7 +64,7 @@ int procline(void) 	/* tratta una riga di input */
             break;
             // Redirezione dello standard ouput su un file in modalità APPEND #5
             case APPEND:
-            if((fd = open(pathname, O_CREAT|O_APPEND|O_WRONLY)) < 0)
+            if((fd = open(pathname, O_CREAT|O_APPEND|O_WRONLY)) < 0)    // successive operazioni di scrittura verranno accodate 
             {
                 perror("open");
                 exit(1);
@@ -89,8 +89,9 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
     if (where == FOREGROUND)
     {
-        signal(SIGINT, SIG_IGN); 
+        signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
     }
+
     if (pid == (pid_t) 0) /* processo figlio */
     {
         /* esegue il comando il cui nome e' il primo elemento di cline,
@@ -99,8 +100,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         // Redirezione dello standard ouput su un file #4
         if (fd != 0)
         {
-            ret = dup2(fd, 1);
-
+            ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario
             if (ret < 0)
             {
                 perror("dup2");
@@ -155,7 +155,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     }
 }
 
-void sigint_handler(int sig_num) 
+void sigint_handler(int sig_num)    /* invia segnale di chiusura ad ogni processo eccetto per il primo */
 { 
     kill(-1, SIGINT);   // il segnale SIGINT e' inviato ad ogni processo eccetto per il primo
 } 
@@ -163,7 +163,7 @@ void sigint_handler(int sig_num)
 int main()
 {
     // Possibilità di interrompere un comando #3
-    signal(SIGINT, sigint_handler); 
+    signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
 
     while(userin(prompt) != EOF)
     procline();
