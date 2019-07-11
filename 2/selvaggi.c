@@ -35,17 +35,17 @@ void * Selvaggio()
         if (pentola > 0)
         {
             pentola--;
-            printf("Selvaggio n%d ha MANGIATO\n", id);
+            printf("Selvaggio %d ha MANGIATO\n", id);
         }
         // Ciascun selvaggio deve mangiare NGIRI #8
         else
         {
             i--;
-            printf("Selvaggio n%d e' stato LENTO\n", id);
+            printf("Selvaggio %d e' stato LENTO\n", id);
         }
-        printf("Al selvaggio n%d mancano ancora %d porzioni\n", id, i);
+        printf("Al selvaggio %d mancano ancora %d porzioni\n", id, i);
     }
-    printf("Selvaggio n%d e' SAZZIO\n", id);
+    printf("Selvaggio %d e' SAZZIO\n", id);
     pthread_exit(NULL);
 }
 
