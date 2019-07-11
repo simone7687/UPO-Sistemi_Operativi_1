@@ -17,19 +17,23 @@ Cuoco()
         up(M);      // pentola piena
     }
 }
-Selvaggio()
+void Selvaggio()
 {
+    // Quando un selvaggio ha fame #6
     for (int i=0; i<NGIRI; i++)
     {
-        // <pensa>
-        // …
+        // se non ci sono porzioni
         if (pentola == 0)
         {
-            // …
+            // sveglia il cuoco
+            // attende che il cuoco abbia completamente
         }
-        pentola--;
-        // …
-        // <mangia porzione>
+        // se la pentola contiene almeno una porzione, se ne appropria
+        if (pentola > 0)
+        {
+            pentola--;
+        }
+        }
     }
 }
 
