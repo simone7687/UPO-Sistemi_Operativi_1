@@ -100,6 +100,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         // Redirezione dello standard ouput su un file #4
         if (fd != 0)
         {
+            lseek(fd, 0L, SEEK_END);    // La nuova posizione e' calcolata aggiungendo offset dalla fine file.
             ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario (int oldfd, int newfd)
             if (ret < 0)
             {
