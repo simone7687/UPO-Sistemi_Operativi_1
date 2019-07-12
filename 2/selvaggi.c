@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
             perror("thread selvaggi");
         }
     }
-    // attende i selvaggi
+    // Il programma termina quando tutti i selvaggi hanno completato il loro ciclo (selvaggi) #11
     for (int i=0; i<N; i++)
     {
         if (pthread_join(selvaggi[i], NULL))
