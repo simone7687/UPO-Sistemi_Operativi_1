@@ -96,5 +96,6 @@ int main(int argc, char *argv[])
             perror("attende i selvaggi");
         }
     }
+    // Contare quante volte il cuoco riempie la pentola (selvaggi) #10
     printf("Pentole riempite: %d\n", K);
 }
