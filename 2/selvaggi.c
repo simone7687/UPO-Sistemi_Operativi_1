@@ -29,24 +29,17 @@ void * Selvaggio()
     {
         // se non ci sono porzioni
         if (pentola == 0)
-        {
-            printf("La pentola e' VUOTA\n");
-            // sveglia il cuoco
-            // attende che il cuoco abbia completamente
+        {            
+            sem_post(&vuoto);   // rilascia una pentola vuota   up -> signal
+            sem_wait(&pieno);   // richiede una pentola piena   down -> wait
         }
         // se la pentola contiene almeno una porzione, se ne appropria
         if (pentola > 0)
         {
-            pentola--;
-            printf("Selvaggio %d ha MANGIATO\n", id);
-        }
-        // Ciascun selvaggio deve mangiare NGIRI #8
-        else
-        {
-            i--;
-            printf("Selvaggio %d e' stato LENTO\n", id);
+            pentola--;          // prendi una porzione dalla pentola
         }
         printf("Al selvaggio %d mancano ancora %d porzioni\n", id, i);
+        sem_post(&mutex);   // esce dalla sezione critica
     }
     printf("Selvaggio %d e' SAZIO\n", id);
     pthread_exit(NULL);
