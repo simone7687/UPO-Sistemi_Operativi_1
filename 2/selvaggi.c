@@ -7,6 +7,9 @@ int N;  /* numero selvaggi */
 int M;  /* numero porzioni */
 int NGIRI;  /* numero giri */
 int pentola;    /* pentola (puo' contenere fino ad M porzioni) */
+sem_t vuoto; /* semaforo vuoto */
+sem_t pieno; /* semaforo pieno */
+sem_t mutex; /* semaforo sessione critica */
 
 void * Cuoco()
 {
@@ -63,6 +66,10 @@ int main(int argc, char *argv[])
     printf("numero selvaggi = %d  \nnumero porzioni = %d  \nnumero giri     = %d\n", N, M, NGIRI);
     
     pentola = M;
+    // semafori (lo 0 nel seconda "colonna": il semaforo è condiviso tra thread (uguale a 0) o processi (diverso da 0))
+    sem_init(&pieno, 0, M);
+    sem_init(&vuoto, 0, 0);
+    sem_init(&mutex, 0, 1);
     // thread cuoco
     pthread_t cuoco;
     if (pthread_create(&cuoco, NULL, Selvaggio, NULL))
