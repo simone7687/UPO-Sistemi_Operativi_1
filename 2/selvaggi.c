@@ -2,6 +2,7 @@
 #include <semaphore.h>  // per utilizare le system call POSIX per la gestione di semafori (sem_init, sem_wait, sem_post)
 #include <pthread.h>    // per la gestione dei thread
 #include <stdlib.h>
+#include <unistd.h>     // sleep
 
 int N;  /* numero selvaggi */
 int M = 0;  /* numero porzioni */
@@ -52,6 +53,7 @@ void * Selvaggio()
             printf("Porzioni rimanenti: %d\n", pentola);
         }
         sem_post(&mutex);   // esce dalla sezione critica
+        sleep(1);   // selvaggio aspetta che gli altri prendono al loro porzione
     }
     printf("Selvaggio %d e' SAZIO\n", id);
     pthread_exit(NULL);
