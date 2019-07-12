@@ -107,7 +107,6 @@ void runcommand(char **cline,int where)	/* esegue un comando */
                 perror("dup2");
                 exit(1);
             }
-            close(fd);
         }
 
         execvp(*cline,cline);
@@ -140,6 +139,11 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     if(pid != 0)
     {
         ret = waitpid(pid, &exitstat, WNOHANG);
+        // chiusura file #4
+        if(fd != 0)
+        {
+            close(fd);
+        }
         if (WTERMSIG(exitstat) == SIGINT)
         {printf("\nEsecuzione terminata con CTRL-C\n\n");}
         else if (where == BACKGROUND)
