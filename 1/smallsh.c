@@ -100,7 +100,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         // Redirezione dello standard ouput su un file #4
         if (fd != 0)
         {
-            ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario
+            ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario (int oldfd, int newfd)
             if (ret < 0)
             {
                 perror("dup2");
