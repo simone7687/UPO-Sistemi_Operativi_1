@@ -150,7 +150,7 @@ int file_path() /* copia il percorso file in pathname, ritorna REDIRECT o APPEND
         i++;
     }
     // copia il percorso del file in pathname
-    for (int j = 0; inpbuf[i] != ' ' && inpbuf[i] != '\n' && inpbuf[i] != '\0' && i <= l-1; j++)   
+    for (int j = 0; strchr(special, inpbuf[i]) == NULL && i <= l-1; j++)   
     {
         pathname[j] = inpbuf[i];
         i++;
