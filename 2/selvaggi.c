@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     sem_init(&mutex, 0, 1);
     // thread cuoco
     pthread_t cuoco;
-    if (pthread_create(&cuoco, NULL, Selvaggio, NULL))
+    if (pthread_create(&cuoco, NULL, Cuoco, NULL))
     {
         perror("thread cuoco");
     }
