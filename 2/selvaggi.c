@@ -15,12 +15,15 @@ sem_t mutex; /* semaforo sessione critica */
 void * Cuoco()
 {
     pentola = M;        // riempi pentola
+    printf("Cuoco ha RIEMPITO la pentola\n");
     while (1)
     {
+        printf("Cuoco e' andato a DORMIRE\n");
         sem_wait(&vuoto);   // richiede una pentola vuota   down -> wait
         sem_wait(&mutex);   // entra in sezione critica
         pentola = M;        // riempi pentola
         K++;
+        printf("Cuoco ha RIEMPITO la pentola\n");
         sem_post(&mutex);   // esce dalla sezione critica
         sem_post(&pieno);   // rilascia una pentola piena   up -> signal
     }
@@ -30,6 +33,7 @@ void * Selvaggio()
 {
     int id = pthread_self();
     // Quando un selvaggio ha fame #6
+    // Ciascun selvaggio deve mangiare NGIRI #8
     for (int i=0; i<NGIRI; i++)
     {
         // se non ci sono porzioni
@@ -37,14 +41,16 @@ void * Selvaggio()
         {            
             sem_post(&vuoto);   // rilascia una pentola vuota   up -> signal
             sem_wait(&pieno);   // richiede una pentola piena   down -> wait
+            printf("Selvaggio %d ha SVEGLIATO il cuoco\n",id);
         }
         // se la pentola contiene almeno una porzione, se ne appropria
         sem_wait(&mutex);   // entra in sezione critica
         if (pentola > 0)
         {
             pentola--;          // prendi una porzione dalla pentola
+            printf("Selvaggio %d ha MANGIATO, per essere sazio mancano: %d\n", id, NGIRI-i-1);
+            printf("Porzioni rimanenti: %d\n", pentola);
         }
-        printf("Al selvaggio %d mancano ancora %d porzioni\n", id, i);
         sem_post(&mutex);   // esce dalla sezione critica
     }
     printf("Selvaggio %d e' SAZIO\n", id);
