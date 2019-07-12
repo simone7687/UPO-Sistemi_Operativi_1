@@ -7,6 +7,7 @@ int N;  /* numero selvaggi */
 int M = 0;  /* numero porzioni */
 int NGIRI;  /* numero giri */
 int pentola;    /* pentola (puo' contenere fino ad M porzioni) */
+int K = 0;  /* pentole riempite */
 sem_t vuoto; /* semaforo vuoto */
 sem_t pieno; /* semaforo pieno */
 sem_t mutex; /* semaforo sessione critica */
@@ -89,4 +90,5 @@ int main(int argc, char *argv[])
             perror("attende i selvaggi");
         }
     }
+    printf("Pentole riempite: %d\n", K);
 }
