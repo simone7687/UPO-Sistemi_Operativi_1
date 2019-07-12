@@ -34,6 +34,7 @@ void * Selvaggio()
             sem_wait(&pieno);   // richiede una pentola piena   down -> wait
         }
         // se la pentola contiene almeno una porzione, se ne appropria
+        sem_wait(&mutex);   // entra in sezione critica
         if (pentola > 0)
         {
             pentola--;          // prendi una porzione dalla pentola
