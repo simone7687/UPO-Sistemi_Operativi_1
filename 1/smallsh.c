@@ -79,19 +79,18 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     pid_t pid;
     int exitstat,ret;
 
-    pid = fork();
-    if (pid == (pid_t) -1) 
-    {
-        perror("smallsh: fork fallita");
-        return;
-    }
-
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
     if (where == FOREGROUND)
     {
         signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
     }
 
+    pid = fork();
+    if (pid == (pid_t) -1) 
+    {
+        perror("smallsh: fork fallita");
+        return;
+    }
     if (pid == (pid_t) 0) /* processo figlio */
     {
         /* esegue il comando il cui nome e' il primo elemento di cline,
