@@ -113,13 +113,13 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         exit(1);
     }
     // Background commands (&) #1
-    else if(where != BACKGROUND) /* processo padre */
+    else if(where == FOREGROUND) /* processo padre */
     {
         ret = wait(&exitstat);
 
         if (ret == -1) perror("wait");
     }
-    else    
+    else if(where == BACKGROUND)
     {
         pid = fork();
 
