@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <signal.h> 
 #include <fcntl.h>  // tipi di apertura file
+#include <assert.h> // assert
 
 char *prompt = "Dare un comando>";
 void sigint_handler(int sig_num);
@@ -76,7 +77,7 @@ int procline(void) 	/* tratta una riga di input */
 
 void runcommand(char **cline,int where)	/* esegue un comando */
 {
-    pid_t pid;
+    pid_t pid1, pid2;
     int exitstat,ret;
 
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
@@ -159,15 +160,25 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     }
 }
 
+pid_t parent_pid;
+void sigquit_handler (int sig)
+{
+    assert(sig == SIGQUIT);
+    pid_t self = getpid();
+    if (parent_pid != self) _exit(0);
+}
 void sigint_handler(int sig_num)    /* invia segnale di chiusura ad ogni processo eccetto per il primo */
-{ 
-    kill(-1, SIGINT);   // il segnale SIGINT e' inviato ad ogni processo eccetto per il primo
+{
+    kill(-parent_pid, SIGQUIT);
 } 
 
 int main()
 {
     // Possibilità di interrompere un comando #3
+    signal(SIGQUIT, sigquit_handler);
+    parent_pid = getpid();
     signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
+    fflush(stdout);
 
     while(userin(prompt) != EOF)
     procline();
