@@ -86,13 +86,13 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
     }
 
-    pid = fork();
-    if (pid == (pid_t) -1) 
+    pid1 = fork();
+    if (pid1 == (pid_t) -1) 
     {
         perror("smallsh: fork fallita");
         return;
     }
-    if (pid == (pid_t) 0) /* processo figlio */
+    if (pid1 == (pid_t) 0)  /* processo figlio */
     {
         /* esegue il comando il cui nome e' il primo elemento di cline,
         passando cline come vettore di argomenti */
@@ -114,44 +114,37 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         exit(1);
     }
     // Background commands (&) #1
-    else if(where == FOREGROUND) /* processo padre */
+    else if(where == FOREGROUND)    /* processo padre */
     {
-        ret = wait(&exitstat);
-
+        ret = waitpid(pid1, &exitstat, 0);
         if (ret == -1) perror("wait");
     }
-    else if(where == BACKGROUND)
+    else if(where == BACKGROUND)    /* processo padre */
     {
-        pid = fork();
-
-        if (pid == (pid_t) -1) 
+        // Informazioni sul fatto che il comando è terminato #2
+        pid2 = fork();
+        if (pid2 == (pid_t) -1) 
         {
             perror("smallsh: fork fallita");
             return;
         }
-        if (pid != (pid_t) 0) /* processo padre */
+        if (pid2 != (pid_t) 0)  /* processo padre */
         {
-            ret = wait(&exitstat);
+            ret = waitpid(pid1, &exitstat, 0);
             if (ret == -1) perror("wait");
+            printf("\nEsecuzione terminata\n\nDare un comando> ");
         }
     }
     // Informazioni sul fatto che il comando è terminato #2
-    if(pid != 0)
+    if(pid2 != (pid_t) 0)
     {
-        ret = waitpid(pid, &exitstat, WNOHANG);
+        ret = waitpid(pid2, &exitstat, WNOHANG);
+        ret = waitpid(pid2, &exitstat, 0);
         // chiusura file #4
         if(fd != 0)
         {
             close(fd);
         }
-        if (WTERMSIG(exitstat) == SIGINT)
-        {printf("\nEsecuzione terminata con CTRL-C\n\n");}
-        else if (where == BACKGROUND)
-        {printf("Esecuzione terminata\n\n");}
-        else if (WIFSIGNALED(exitstat) != 0)
-        {printf("\nEsecuzione terminata per mezzo di un segnale non gestito\n\n");}
-        else if (!WIFEXITED(exitstat))
-        {printf("\nEsecuzione terminata in modo anomalo\n\n");}
     }
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
     if (where == FOREGROUND)
