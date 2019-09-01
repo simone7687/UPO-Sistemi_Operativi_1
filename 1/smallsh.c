@@ -176,7 +176,6 @@ void sigint_handler(int sig_num)    /* invia segnale di chiusura ad ogni process
 {
     int exitstat;
     kill(pid2, SIGQUIT);
-    sleep(1);
 } 
 
 int main()
