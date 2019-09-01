@@ -80,46 +80,46 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     pid_t pid1, pid2;
     int exitstat,ret;
 
-    // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
-    if (where == FOREGROUND)
-    {
-        signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
-    }
-
     pid1 = fork();
     if (pid1 == (pid_t) -1) 
     {
         perror("smallsh: fork fallita");
         return;
     }
-    if (pid1 == (pid_t) 0)  /* processo figlio */
-    {
-        /* esegue il comando il cui nome e' il primo elemento di cline,
-        passando cline come vettore di argomenti */
-
-        // Redirezione dello standard ouput su un file #4
-        if (fd != 0)
-        {
-            lseek(fd, 0L, SEEK_END);    // La nuova posizione e' calcolata aggiungendo offset dalla fine file.
-            ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario (int oldfd, int newfd)
-            if (ret < 0)
-            {
-                perror("dup2");
-                exit(1);
-            }
-        }
-
-        execvp(*cline,cline);
-        perror(*cline);
-        exit(1);
-    }
     // Background commands (&) #1
-    else if(where == FOREGROUND)    /* processo padre */
+    if(where == FOREGROUND)
     {
-        ret = waitpid(pid1, &exitstat, 0);
-        if (ret == -1) perror("wait");
+        // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
+        signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
+        if (pid1 == (pid_t) 0)  /* processo figlio */
+        {
+            /* esegue il comando il cui nome e' il primo elemento di cline,
+            passando cline come vettore di argomenti */
+
+            // Redirezione dello standard ouput su un file #4
+            if (fd != 0)
+            {
+                lseek(fd, 0L, SEEK_END);    // La nuova posizione e' calcolata aggiungendo offset dalla fine file.
+                ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario (int oldfd, int newfd)
+                if (ret < 0)
+                {
+                    perror("dup2");
+                    exit(1);
+                }
+            }
+
+            execvp(*cline,cline);
+            perror(*cline);
+            exit(1);
+        }
+        else                    /* processo padre */
+        {
+            ret = waitpid(pid1, &exitstat, 0);
+            if (ret == -1) perror("wait");
+        }
+        signal(SIGINT, sigint_handler);
     }
-    else if(where == BACKGROUND)    /* processo padre */
+    else if(where == BACKGROUND && pid1 == (pid_t) 0)   /* processo figlio */
     {
         // Informazioni sul fatto che il comando è terminato #2
         pid2 = fork();
@@ -128,28 +128,47 @@ void runcommand(char **cline,int where)	/* esegue un comando */
             perror("smallsh: fork fallita");
             return;
         }
-        if (pid2 != (pid_t) 0)  /* processo padre */
+        if (pid2 == (pid_t) 0)  /* processo figlio */
         {
-            ret = waitpid(pid1, &exitstat, 0);
+            /* esegue il comando il cui nome e' il primo elemento di cline,
+            passando cline come vettore di argomenti */
+
+            // Redirezione dello standard ouput su un file #4
+            if (fd != 0)
+            {
+                lseek(fd, 0L, SEEK_END);    // La nuova posizione e' calcolata aggiungendo offset dalla fine file.
+                ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario (int oldfd, int newfd)
+                if (ret < 0)
+                {
+                    perror("dup2");
+                    exit(1);
+                }
+            }
+
+            execvp(*cline,cline);
+            perror(*cline);
+            exit(1);
+        }
+        else                    /* processo padre */
+        {
+            ret = waitpid(pid2, &exitstat, 0);
             if (ret == -1) perror("wait");
             printf("\nEsecuzione terminata\n\nDare un comando> ");
         }
     }
-    // Informazioni sul fatto che il comando è terminato #2
-    if(pid2 != (pid_t) 0)
+    // chiusura file #4
+    if(fd != 0)
     {
-        ret = waitpid(pid2, &exitstat, WNOHANG);
-        ret = waitpid(pid2, &exitstat, 0);
-        // chiusura file #4
-        if(fd != 0)
-        {
-            close(fd);
-        }
+        close(fd);
     }
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
-    if (where == FOREGROUND)
+    if (pid1 == (pid_t) 0)
     {
-        signal(SIGINT, sigint_handler);
+        exit(1);
+    }
+    else
+    {
+        waitpid(pid1, &exitstat, WNOHANG);
     }
 }
 
