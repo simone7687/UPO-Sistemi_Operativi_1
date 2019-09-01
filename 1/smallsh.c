@@ -179,9 +179,9 @@ void sigquit_handler (int sig)
 void sigint_handler(int sig_num)    /* invia segnale di chiusura ad ogni processo eccetto per il primo */
 {
     int exitstat;
-    kill(-pid2, SIGQUIT);
+    kill(pid2, SIGQUIT);
     sleep(1);
-    kill(-pid1, SIGQUIT);
+    kill(pid1, SIGQUIT);
     waitpid(pid1, &exitstat, 0);
 } 
 
