@@ -116,7 +116,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
             ret = waitpid(pid1, &exitstat, 0);
             if (ret == -1) perror("wait");
             if (WTERMSIG(exitstat) == SIGINT)
-            {printf("\nEsecuzione terminata con CTRL-C\n\nDare un comando> ");}
+            {printf("\nEsecuzione terminata con CTRL-C\n\n%s ", prompt);}
         }
         signal(SIGINT, SIG_DFL);
     }
@@ -154,7 +154,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         {
             ret = waitpid(pid2, &exitstat, 0);
             if (ret == -1) perror("wait");
-            printf("\nEsecuzione terminata\n\nDare un comando> ");
+            printf("\nEsecuzione terminata\n\n%s ", prompt);
         }
     }
     // chiusura file #4
