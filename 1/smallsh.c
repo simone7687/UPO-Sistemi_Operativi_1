@@ -164,6 +164,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
     if (pid1 == (pid_t) 0)
     {
+        kill(pid1, SIGINT);
         exit(1);
     }
     else
