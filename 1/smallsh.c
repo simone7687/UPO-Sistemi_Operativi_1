@@ -5,7 +5,6 @@
 #include <assert.h> // assert
 
 char *prompt = "Dare un comando>";
-void sigint_handler(int sig_num);
 int fd = 0; /* file */
 pid_t pid1, pid2;
 
@@ -117,7 +116,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
             ret = waitpid(pid1, &exitstat, 0);
             if (ret == -1) perror("wait");
         }
-        signal(SIGINT, sigint_handler);
+        signal(SIGINT, SIG_DFL);
     }
     else if(where == BACKGROUND && pid1 == (pid_t) 0)   /* processo figlio */
     {
@@ -168,22 +167,16 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     }
 }
 
-void sigquit_handler (int sig)
-{
-    assert(sig == SIGQUIT);
-}
-void sigint_handler(int sig_num)    /* invia segnale di chiusura ad ogni processo eccetto per il primo */
+void sigint_handler (int sig)
 {
     int exitstat;
-    kill(pid2, SIGQUIT);
-} 
+    waitpid(pid2, &exitstat, WNOHANG);
+}
 
 int main()
 {
     // Possibilità di interrompere un comando #3
-    signal(SIGQUIT, sigquit_handler);
     signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
-    fflush(stdout);
 
     while(userin(prompt) != EOF)
     procline();
