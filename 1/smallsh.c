@@ -171,8 +171,16 @@ void runcommand(char **cline,int where)	/* esegue un comando */
 
 void sigint_handler (int sig)
 {
-    int exitstat;
-    waitpid(pid2, &exitstat, WNOHANG);
+    int exitstat, ret;
+    if(pid1 != 0)
+    {
+        kill(pid2, 0);
+        sleep(1);
+        waitpid(pid1, &exitstat, 0);
+        if (ret == -1) perror("wait");
+        waitpid(pid2, &exitstat, 0);
+        if (ret == -1) perror("wait");
+    }
 }
 
 int main()
