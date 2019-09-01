@@ -176,9 +176,9 @@ void sigint_handler (int sig)
     {
         kill(pid2, 0);
         sleep(1);
-        waitpid(pid1, &exitstat, 0);
+        ret = waitpid(pid1, &exitstat, 0);
         if (ret == -1) perror("wait");
-        waitpid(pid2, &exitstat, 0);
+        ret = waitpid(pid2, &exitstat, 0);
         if (ret == -1) perror("wait");
     }
 }
