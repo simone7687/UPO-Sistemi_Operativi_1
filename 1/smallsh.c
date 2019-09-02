@@ -9,6 +9,7 @@ char prompt[20+255];
 
 int fd = 0; /* file */
 pid_t pid1, pid2;
+void sigint_handler (int sig);  /* CTRL-C */
 
 int procline(void) 	/* tratta una riga di input */
 {
@@ -120,7 +121,8 @@ void runcommand(char **cline,int where)	/* esegue un comando */
             if (WTERMSIG(exitstat) == SIGINT)
             {printf("\nEsecuzione terminata con CTRL-C\n\n%s ", prompt);}
         }
-        signal(SIGINT, SIG_DFL);
+        // Possibilità di interrompere un comando #3
+        signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
     }
     else if(where == BACKGROUND && pid1 == (pid_t) 0)   /* processo figlio */
     {
