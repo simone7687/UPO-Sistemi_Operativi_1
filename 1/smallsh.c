@@ -180,8 +180,10 @@ void sigint_handler (int sig)
         sleep(1);
         ret = waitpid(pid1, &exitstat, 0);
         if (ret == -1) perror("wait");
+        pid1 = 0;
         ret = waitpid(pid2, &exitstat, 0);
         if (ret == -1) perror("wait");
+        pid2 = 0;
     }
 }
 
