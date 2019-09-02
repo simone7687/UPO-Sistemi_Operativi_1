@@ -3,8 +3,10 @@
 #include <signal.h> 
 #include <fcntl.h>  // tipi di apertura file
 #include <assert.h> // assert
+#include <string.h>
 
-char *prompt = "Dare un comando>";
+char prompt[20+255];
+
 int fd = 0; /* file */
 pid_t pid1, pid2;
 
@@ -187,6 +189,11 @@ int main()
 {
     // Possibilità di interrompere un comando #3
     signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
+    // Incitare a dare un comando (smallsh) #17
+    prompt[0] = '%';
+    strncat(prompt, getenv("USER"),15);     //windows: USERPROFILE
+    strcat(prompt, ":");
+    strncat(prompt, getenv("HOME"), 255);   //directory: PATH
 
     while(userin(prompt) != EOF)
     procline();
