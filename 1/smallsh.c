@@ -158,6 +158,9 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         {
             ret = waitpid(pid2, &exitstat, 0);
             if (ret == -1) perror("wait");
+            if (WTERMSIG(exitstat) == SIGINT)
+            {printf("\nEsecuzione terminata con CTRL-C\n\n%s ", prompt);}
+            else
             printf("\nEsecuzione terminata\n\n%s ", prompt);
         }
     }
