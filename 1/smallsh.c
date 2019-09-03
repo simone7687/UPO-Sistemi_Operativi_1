@@ -5,7 +5,7 @@
 #include <assert.h> // assert
 #include <string.h>
 
-char prompt[20+255];
+char prompt[MAXBUF];
 
 int fd = 0; /* file */
 pid_t pid1, pid2;
