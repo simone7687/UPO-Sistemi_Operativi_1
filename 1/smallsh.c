@@ -10,6 +10,9 @@ char prompt[MAXBUF];
 int fd = 0; /* file */
 pid_t pid1, pid2;
 void sigint_handler (int sig);  /* CTRL-C */
+// Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
+void print_pid(const char * name);  /* stampa i pid */
+void add_pid(int x);    /* aggiunge i pid */
 
 int procline(void) 	/* tratta una riga di input */
 {
@@ -91,6 +94,8 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     // Background commands (&) #1
     if(where == FOREGROUND)
     {
+        add_pid(getppid());
+        add_pid(getpid());
         // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
         signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
         if (pid1 == (pid_t) 0)  /* processo figlio */
@@ -110,6 +115,11 @@ void runcommand(char **cline,int where)	/* esegue un comando */
                 }
             }
 
+            if (strcmp(*cline, "bp") == 0)
+            {
+                print_pid("BPID");
+                exit(1);
+            }
             execvp(*cline,cline);
             perror(*cline);
             exit(1);
@@ -126,8 +136,11 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     }
     else if(where == BACKGROUND && pid1 == (pid_t) 0)   /* processo figlio */
     {
+        add_pid(getppid());
+        add_pid(getpid());
         // Informazioni sul fatto che il comando è terminato #2
         pid2 = fork();
+        add_pid(getpid());
         if (pid2 == (pid_t) -1) 
         {
             perror("smallsh: fork fallita");
@@ -150,6 +163,11 @@ void runcommand(char **cline,int where)	/* esegue un comando */
                 }
             }
 
+            if (strcmp(*cline, "bp") == 0)
+            {
+                print_pid("BPID");
+                exit(1);
+            }
             execvp(*cline,cline);
             perror(*cline);
             exit(1);
@@ -191,8 +209,31 @@ void sigint_handler (int sig)
     }
 }
 
+void print_pid(const char * name)
+{
+    char * value;
+
+    value = getenv (name);
+    if (! value) {
+        printf ("%s:nullo.\n", name);
+    }
+    else {
+        printf ("%s%s\n", name, value);
+    }
+}
+void add_pid(int x)
+{
+    char pid[10];
+    char buffer[MAXBUF];
+    sprintf(pid, "%d", x);
+    strcat(buffer, ":");
+    strcat(buffer, pid);
+    setenv("BPID", buffer, sizeof(buffer));
+}
+
 int main()
 {
+    setenv("BPID", "", 0);
     // Possibilità di interrompere un comando #3
     signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
     // Incitare a dare un comando (smallsh) #17
