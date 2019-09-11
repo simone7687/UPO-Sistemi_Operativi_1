@@ -38,7 +38,7 @@ void * Selvaggio()
     // Ciascun selvaggio deve mangiare NGIRI #8
     for (int i=0; i<NGIRI; i++)
     {
-        printf("Entra in sezione critica\n",id);
+        printf("Entra in sezione critica\n");
         sem_wait(&mutex);   // entra in sezione critica
         // se non ci sono porzioni
         if (pentola == 0)
@@ -51,7 +51,7 @@ void * Selvaggio()
         pentola--;          // prendi una porzione dalla pentola
         printf("Selvaggio %d ha MANGIATO, per essere sazio mancano: %d\n", id, NGIRI-i-1);
         printf("Porzioni rimanenti: %d\n", pentola);
-        printf("Esce in sezione critica\n",id);
+        printf("Esce in sezione critica\n");
         sem_post(&mutex);   // esce dalla sezione critica
         sleep(1);   // selvaggio aspetta che gli altri prendono al loro porzione
     }
