@@ -38,7 +38,7 @@ void * Selvaggio()
     // Ciascun selvaggio deve mangiare NGIRI #8
     for (int i=0; i<NGIRI; i++)
     {
-        printf("Entra in sezione critica\n");
+        printf("Selvaggio %d entra in sezione critica\n", id);
         sem_wait(&mutex);   // entra in sezione critica
         // se non ci sono porzioni
         if (pentola == 0)
@@ -48,10 +48,13 @@ void * Selvaggio()
             printf("Selvaggio %d ha SVEGLIATO il cuoco\n",id);
         }
         // se la pentola contiene almeno una porzione, se ne appropria
-        pentola--;          // prendi una porzione dalla pentola
-        printf("Selvaggio %d ha MANGIATO, per essere sazio mancano: %d\n", id, NGIRI-i-1);
-        printf("Porzioni rimanenti: %d\n", pentola);
-        printf("Esce in sezione critica\n");
+        if(pentola > 0)
+        {
+            pentola--;          // prendi una porzione dalla pentola
+            printf("Selvaggio %d ha MANGIATO, per essere sazio mancano: %d\n", id, NGIRI-i-1);
+            printf("Porzioni rimanenti: %d\n", pentola);
+        }
+        printf("Selvaggio %d esce della sezione critica\n", id);
         sem_post(&mutex);   // esce dalla sezione critica
         sleep(1);   // selvaggio aspetta che gli altri prendono al loro porzione
     }
@@ -100,4 +103,5 @@ int main(int argc, char *argv[])
     }
     // Contare quante volte il cuoco riempie la pentola (selvaggi) #10
     printf("Pentole riempite: %d\n", K);    // eccetto la prima volta
+    printf("Pentola: %d\n", pentola);       // eccetto la prima volta
 }
