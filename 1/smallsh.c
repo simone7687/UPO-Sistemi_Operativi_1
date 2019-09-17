@@ -8,11 +8,12 @@
 char prompt[MAXBUF];
 
 int fd = 0; /* file */
-pid_t pid1, pid2;
+pid_t pid;
 void sigint_handler (int sig);  /* CTRL-C */
 // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
 void print_pid(const char * name);  /* stampa i pid */
 void add_pid(int x);    /* aggiunge i pid */
+void sigint_handler(int sig);   /* informa che è stato terminato un processo */
 
 int procline(void) 	/* tratta una riga di input */
 {
@@ -85,150 +86,60 @@ void runcommand(char **cline,int where)	/* esegue un comando */
 {
     int exitstat,ret;
 
-    pid1 = fork();
-    if (pid1 == (pid_t) -1) 
+    pid = fork();
+    if (pid == (pid_t) -1) 
     {
         perror("smallsh: fork fallita");
         return;
     }
-    // Background commands (&) #1
-    if(where == FOREGROUND)
+    if (pid == (pid_t) 0)           /* processo figlio */
     {
-        add_pid(getppid());
-        add_pid(getpid());
+        /* esegue il comando il cui nome e' il primo elemento di cline,
+        passando cline come vettore di argomenti */
+
+        // Redirezione dello standard ouput su un file #4
+        if (fd != 0)
+        {
+            lseek(fd, 0L, SEEK_END);    // La nuova posizione e' calcolata aggiungendo offset dalla fine file.
+            ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario (int oldfd, int newfd)
+            if (ret < 0)
+            {
+                perror("dup2");
+                exit(1);
+            }
+        }
+
+        execvp(*cline,cline);
+        perror(*cline);
+        exit(1);
+    }
+    // Background commands (&) #1
+    else if(where == FOREGROUND)    /* processo padre */
+    {
         // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
         signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
-        if (pid1 == (pid_t) 0)  /* processo figlio */
-        {
-            /* esegue il comando il cui nome e' il primo elemento di cline,
-            passando cline come vettore di argomenti */
-
-            // Redirezione dello standard ouput su un file #4
-            if (fd != 0)
-            {
-                lseek(fd, 0L, SEEK_END);    // La nuova posizione e' calcolata aggiungendo offset dalla fine file.
-                ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario (int oldfd, int newfd)
-                if (ret < 0)
-                {
-                    perror("dup2");
-                    exit(1);
-                }
-            }
-
-            if (strcmp(*cline, "bp") == 0)
-            {
-                print_pid("BPID");
-                exit(1);
-            }
-            execvp(*cline,cline);
-            perror(*cline);
-            exit(1);
-        }
-        else                    /* processo padre */
-        {
-            ret = waitpid(pid1, &exitstat, 0);
-            if (ret == -1) perror("wait");
-            if (WTERMSIG(exitstat) == SIGINT)
-            {printf("\nEsecuzione terminata con CTRL-C\n\n%s ", prompt);}
-        }
+        ret = waitpid(pid, &exitstat, 0);
+        if (ret == -1) perror("wait");
+        if (WTERMSIG(exitstat) == SIGINT)
+        {printf("\nEsecuzione terminata con CTRL-C\n\n%s ", prompt);}
         // Possibilità di interrompere un comando #3
         signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
-    }
-    else if(where == BACKGROUND && pid1 == (pid_t) 0)   /* processo figlio */
-    {
-        add_pid(getppid());
-        add_pid(getpid());
-        // Informazioni sul fatto che il comando è terminato #2
-        pid2 = fork();
-        add_pid(getpid());
-        if (pid2 == (pid_t) -1) 
-        {
-            perror("smallsh: fork fallita");
-            return;
-        }
-        if (pid2 == (pid_t) 0)  /* processo figlio */
-        {
-            /* esegue il comando il cui nome e' il primo elemento di cline,
-            passando cline come vettore di argomenti */
-
-            // Redirezione dello standard ouput su un file #4
-            if (fd != 0)
-            {
-                lseek(fd, 0L, SEEK_END);    // La nuova posizione e' calcolata aggiungendo offset dalla fine file.
-                ret = dup2(fd, 1);  // crea newfd come copia di oldfd, chiudendo prima newfd se e' necessario (int oldfd, int newfd)
-                if (ret < 0)
-                {
-                    perror("dup2");
-                    exit(1);
-                }
-            }
-
-            if (strcmp(*cline, "bp") == 0)
-            {
-                print_pid("BPID");
-                exit(1);
-            }
-            execvp(*cline,cline);
-            perror(*cline);
-            exit(1);
-        }
-        else                    /* processo padre */
-        {
-            ret = waitpid(pid2, &exitstat, 0);
-            if (ret == -1) perror("wait");
-            if (WTERMSIG(exitstat) == SIGINT)
-            {printf("\nEsecuzione terminata con CTRL-C\n\n%s ", prompt);}
-            else
-            printf("\nEsecuzione terminata\n\n%s ", prompt);
-        }
     }
     // chiusura file #4
     if(fd != 0)
     {
         close(fd);
     }
-    if (pid1 == (pid_t) 0)
-    {
-        exit(1);
-    }
 }
-
-void sigint_handler (int sig)
+// Informazioni sul fatto che il comando è terminato #2
+void sigint_handler(int sig)
 {
-    int exitstat, ret;
-    if(pid1 != 0)
-    {
-        kill(pid2, 0);
-        sleep(1);
-        ret = waitpid(pid1, &exitstat, 0);
-        if (ret == -1) perror("wait");
-        pid1 = 0;
-        ret = waitpid(pid2, &exitstat, 0);
-        if (ret == -1) perror("wait");
-        pid2 = 0;
-    }
-}
-
-void print_pid(const char * name)
-{
-    char * value;
-
-    value = getenv (name);
-    if (! value) {
-        printf ("%s:nullo.\n", name);
-    }
-    else {
-        printf ("%s%s\n", name, value);
-    }
-}
-void add_pid(int x)
-{
-    char pid[10];
-    char buffer[MAXBUF];
-    sprintf(pid, "%d", x);
-    strcat(buffer, ":");
-    strcat(buffer, pid);
-    setenv("BPID", buffer, sizeof(buffer));
+    int exitstat = 0, ret;
+    printf("il processo terminato [%d]", exitstat);
+    sleep(1);
+    ret = waitpid(pid, &exitstat, 0);
+    if (ret == -1) perror("wait");
+    
 }
 
 int main()
