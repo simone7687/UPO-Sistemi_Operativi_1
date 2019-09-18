@@ -121,8 +121,6 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
         ret = waitpid(pid, &exitstat, 0);
         if (ret == -1) perror("wait");
-        if (WTERMSIG(exitstat) == SIGINT)
-        {printf("\nEsecuzione terminata con CTRL-C\n\n%s ", prompt);}
         // Possibilità di interrompere un comando #3
         signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
     }
@@ -147,7 +145,9 @@ void wait_child()
     while(ret !=-1 && ret !=0)
     {
         ret = waitpid(-1, &exitstat, WNOHANG);
-        if(ret !=-1 && ret !=0)
+        if (ret !=-1 && ret !=0 && WTERMSIG(exitstat) == SIGINT)
+        {printf("\nprocesso terminato con CTRL-C [%d]\n", ret);}
+        else if(ret !=-1 && ret !=0)
         {printf("\nprocesso terminato [%d]\n", ret);}
     }
 }
