@@ -14,7 +14,7 @@ void wait_child();   /* Aspetta eventuali figlio morti e informazioni sul fatto 
 // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
 void print_pid(const char * name);  /* stampa i pid */
 void add_pid(int x);    /* aggiunge i pid */
-void sigint_handler(int sig);   /* informa che è stato terminato un processo */
+void sigint_handler(int sig);   /* chiude i processi in background attraverso CTR-C */
 
 int procline(void) 	/* tratta una riga di input */
 {
@@ -86,7 +86,11 @@ int procline(void) 	/* tratta una riga di input */
 void runcommand(char **cline,int where)	/* esegue un comando */
 {
     int exitstat,ret;
-
+    // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
+    if(where == FOREGROUND)    /* processo padre */
+    {
+        signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
+    }
     pid = fork();
     if (pid == (pid_t) -1) 
     {
@@ -117,8 +121,6 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     // Background commands (&) #1
     else if(where == FOREGROUND)    /* processo padre */
     {
-        // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
-        signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
         ret = waitpid(pid, &exitstat, 0);
         if (ret == -1) perror("wait");
         // Possibilità di interrompere un comando #3
@@ -130,14 +132,12 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         close(fd);
     }
 }
-// Informazioni sul fatto che il comando è terminato #2
+// Possibilità di interrompere un comando #3
 void sigint_handler(int sig)
 {
-    int exitstat = 0, ret;
-    printf("il processo terminato [%d]", exitstat);
-    sleep(1);
-    ret = waitpid(pid, &exitstat, 0);
-    if (ret == -1) perror("wait");
+    int exitstat;
+    // waitpid(&exitstat);  // 
+    wait_child();
 }
 void wait_child()
 {
