@@ -10,6 +10,7 @@ char prompt[MAXBUF];
 int fd = 0; /* file */
 pid_t pid;
 void sigint_handler (int sig);  /* CTRL-C */
+void wait_child();   /* Aspetta eventuali figlio morti e informazioni sul fatto che il comando è terminato #2 */
 // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
 void print_pid(const char * name);  /* stampa i pid */
 void add_pid(int x);    /* aggiunge i pid */
@@ -139,7 +140,16 @@ void sigint_handler(int sig)
     sleep(1);
     ret = waitpid(pid, &exitstat, 0);
     if (ret == -1) perror("wait");
-    
+}
+void wait_child()
+{
+    int exitstat, ret=1;
+    while(ret !=-1 && ret !=0)
+    {
+        ret = waitpid(-1, &exitstat, WNOHANG);
+        if(ret !=-1 && ret !=0)
+        {printf("\nprocesso terminato [%d]\n", ret);}
+    }
 }
 
 int main()
@@ -154,5 +164,5 @@ int main()
     strncat(prompt, getenv("HOME"), 255);   //directory: PATH
 
     while(userin(prompt) != EOF)
-    procline();
+    {wait_child();procline();}
 }
