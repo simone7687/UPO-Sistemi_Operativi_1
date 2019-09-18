@@ -135,7 +135,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
 // Possibilità di interrompere un comando #3
 void sigint_handler(int sig)
 {
-    int exitstat;
+    // int exitstat;
     // waitpid(&exitstat);  // 
     wait_child();
 }
