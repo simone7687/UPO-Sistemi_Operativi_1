@@ -145,10 +145,14 @@ void wait_child()
     while(ret !=-1 && ret !=0)
     {
         ret = waitpid(-1, &exitstat, WNOHANG);
-        if (ret !=-1 && ret !=0 && WTERMSIG(exitstat) == SIGINT)
-        {printf("\nprocesso terminato con CTRL-C [%d]\n", ret);}
-        else if(ret !=-1 && ret !=0)
-        {printf("\nprocesso terminato [%d]\n", ret);}
+        if (ret !=-1 && ret !=0)
+        {
+            // Informazioni sul fatto che il comando è terminato (smallsh) #2
+            if (WTERMSIG(exitstat) == SIGINT)
+            {printf("\nprocesso terminato con CTRL-C [%d]\n", ret);}
+            else
+            {printf("\nprocesso terminato [%d]\n", ret);}
+        }
     }
 }
 
