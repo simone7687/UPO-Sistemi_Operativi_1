@@ -28,43 +28,30 @@ struct buffer
 
 void Cuoco()
 {
-    while (buf->pentola != 0)   // <-------------------------------------------------------------------------------------------DA CAMBIARE
-    {
-        down(vuoto,0);
-        up(pieno,0);
-    }
-
     while (1)
     {
         down(vuoto,0);      // richiede una pentola vuota
-        // down(mutex,0);      // entra in sezione critica
         buf->pentola = M;   // riempi pentola
         buf->K += 1;
         printf("Cuoco ha RIEMPITO la pentola\n");
-        // up(mutex,0);        // esce dalla sezione critica
         up(pieno,0);        // rilascia una pentola piena
         printf("Cuoco e' andato a DORMIRE\n");
     }
-    // while (buf->pentola != 0);
 }
 
 void Selvaggio(int id)
 {
-    // int id = getpid();
     // Quando un selvaggio ha fame #6
     // Ciascun selvaggio deve mangiare NGIRI #8
     for (int i=0; i<NGIRI; i++)
     {
         down(mutex,0);      // entra in sezione critica
         printf("Selvaggio %d ENTRA in sezione critica\n", id);
-        // sleep(1);
         // se non ci sono porzioni
         if(buf->pentola == 0)
         {
-            // printf("Selvaggio %d ASPETTA cuoco\n", id);
+            printf("Selvaggio %d ASPETTA cuoco\n", id);
             up(vuoto,0);    // rilascia una pentola vuota
-            // up(mutex,0);
-            // down(mutex,0);
             down(pieno,0);  // richiede una pentola piena
         }
         // se la pentola contiene almeno una porzione, se ne appropria
@@ -102,7 +89,7 @@ int main(int argc, char *argv[])
 
         if ((vuoto = semget(IPC_PRIVATE, 1, 0666)) == -1)
         perror("semget");
-        seminit(vuoto, 0, N);
+        seminit(vuoto, 1, N);
 
         if ((pieno = semget(IPC_PRIVATE, 1, 0666)) == -1)
         perror("semget");
@@ -139,7 +126,6 @@ int main(int argc, char *argv[])
         for(int i=0; i<N; i++)
         {
             pid = wait(NULL);
-            // printf("Terminato processo %d\n", pid);
         }
 
         // Contare quante volte il cuoco riempie la pentola (selvaggi) #10
