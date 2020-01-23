@@ -187,56 +187,37 @@ void print_pid(const char * name)
 void add_pid(int x)
 {
     char pid[10];
-    sprintf(pid, "%d", x);
     char * value;
-    value = getenv ("BPID");
     char buffer[MAXBUF];
+    memset(&pid, '\0', sizeof(pid));
+    memset(&value, '\0', sizeof(value));
+    memset(&buffer, '\0', sizeof(buffer));
+    sprintf(pid, "%d", x);
+    value = getenv ("BPID");
     strcat(buffer, value);
     strcat(buffer, ":");
     strcat(buffer, pid);
     setenv("BPID", buffer, sizeof(buffer));
 }
-void dell_char(char *string,int n, int pos)
-{
-	if ((n+pos-1) <= strlen(string))
-	{
-		strcpy(&string[pos-1],&string[n+pos-1]);
-	}
-}
 void remove_pid(int x)
 {
     char pid[10];
     char buf[200];
+    char * value = getenv ("BPID");
     memset(&buf, '\0', sizeof(buf));
     sprintf(pid, "%d", x);
-    int l = strlen(pid);
-    char * value;
-    value = getenv ("BPID");
-    for(int i = 0; value[i] != '\0'; i++)
+
+    char *token = strtok(value, ":");
+    while (token != NULL)
     {
-        if(value[i] == ':')
+        if(strncmp(token, pid, strlen(pid)) != 0)
         {
-            i++;
-            int k = 0;
-            while(value[i+k] == pid[k] && value[i+k] != '\0')
-            {
-                if(l-1 == k)
-                {
-                    strncpy(buf, value, (i-1));
-                    printf("prova 1\n");
-                    while(value[i+l] != '\0')
-                    {
-                        printf("prova 2\n");
-                        buf[i] = value[i+l];
-                        i++; 
-                    }
-                    setenv("BPID", buf, sizeof(buf));
-                    return;
-                }
-                k++;
-            }
+            strcat(buf, ":");
+            strcat(buf, token);
         }
+        token = strtok(NULL, ":");
     }
+    setenv("BPID", buf, sizeof(buf));
 }
 
 int main()
