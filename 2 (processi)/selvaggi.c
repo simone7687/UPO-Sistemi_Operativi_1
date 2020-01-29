@@ -63,6 +63,7 @@ void Selvaggio(int id)
         }
         up(mutex,0);      // esce dalla sezione critica
         printf("Selvaggio %d ESCE della sezione critica\n", id);
+        sleep(1);
     }
     printf("Selvaggio %d e' SAZIO\n", id);
 }
@@ -83,21 +84,21 @@ int main(int argc, char *argv[])
         printf("numero selvaggi = %d  \nnumero porzioni = %d  \nnumero giri     = %d\n", N, M, NGIRI);
 
     // Semafori (lo 0 nel seconda "colonna": il semaforo è condiviso tra thread (uguale a 0) o processi (diverso da 0))
-        if ((mutex = semget(IPC_PRIVATE, 1, 0666)) == -1)
-        perror("semget");
-        seminit(mutex, 0, 1);
+        if ((mutex = semget(IPC_PRIVATE, 1, 0666)) == -1)   // 1: dimensione vettore di semafori, 0666: accesso read /write  
+            perror("semget");
+        seminit(mutex, 0, 1);   //0:down
 
         if ((vuoto = semget(IPC_PRIVATE, 1, 0666)) == -1)
-        perror("semget");
-        seminit(vuoto, 1, N);
+            perror("semget");
+        seminit(vuoto, 1, N);   //1:up
 
         if ((pieno = semget(IPC_PRIVATE, 1, 0666)) == -1)
-        perror("semget");
+            perror("semget");
         seminit(pieno, 0, 0);
 
     // Memoria condivisa
         if ((shmid = shmget(IPC_PRIVATE,sizeof(struct buffer),0666))==-1)
-        perror("shmget");
+            perror("shmget");
         buf = (struct buffer *) shmat(shmid,0,0);
         if (buf == (void *)-1) perror("shmat");
 
@@ -113,20 +114,19 @@ int main(int argc, char *argv[])
         // processo cuoco
         pid_cuoco = fork();
         if (pid_cuoco == (pid_t) 0)
-        {Cuoco(argv[1]);}
+            Cuoco(argv[1]);
 
         // processi selvaggi
         for(int i=0; i<N; i++)
-        {
             if (fork()==0)
-            {Selvaggio(i+1);   exit(0);}
-        }
+            {
+                Selvaggio(i+1);
+                exit(0);
+            }
 
     // Attesa processi
         for(int i=0; i<N; i++)
-        {
             pid = wait(NULL);
-        }
 
         // Contare quante volte il cuoco riempie la pentola (selvaggi) #10
         kill(pid_cuoco, 1);

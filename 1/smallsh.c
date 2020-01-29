@@ -89,14 +89,14 @@ void runcommand(char **cline,int where)	/* esegue un comando */
 {
     int exitstat,ret;
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
-    if(where == FOREGROUND)    /* processo padre */
+    if(where == FOREGROUND)
     {
         signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
     }
     pid = fork();
     // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
     if (pid != (pid_t) 0)
-    {add_pid(pid);}
+        add_pid(pid);
     
     if (pid == (pid_t) -1) 
     {
@@ -142,15 +142,11 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     }
     // chiusura file #4
     if(fd != 0)
-    {
         close(fd);
-    }
 }
 // Possibilità di interrompere un comando #3
 void sigint_handler(int sig)
 {
-    // int exitstat;
-    // waitpid(&exitstat);  // 
     wait_child();
     // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
     setenv("BPID", "", 0);
@@ -160,14 +156,14 @@ void wait_child()
     int exitstat, ret=1;
     while(ret !=-1 && ret !=0)
     {
-        ret = waitpid(-1, &exitstat, WNOHANG);
-        if (ret !=-1 && ret !=0)
+        ret = waitpid(-1, &exitstat, WNOHANG);  //WNOHANG:specifica il ritorno immediato se i child non sono usciti.
+        if (ret > 0)    //-1: errore e 0: non ci sono figli che hanno terminato
         {
             // Informazioni sul fatto che il comando è terminato (smallsh) #2
-            if (WTERMSIG(exitstat) == SIGINT)
-            {printf("\nprocesso terminato con CTRL-C [%d]\n", ret);}
+            if (WTERMSIG(exitstat) == SIGINT)   // WTERMSIG: riporta il segnale che ha causato il termine del processo figlio
+                printf("\nprocesso terminato con CTRL-C [%d]\n", ret);
             else
-            {printf("\nprocesso terminato [%d]\n", ret);}
+                printf("\nprocesso terminato [%d]\n", ret);
             // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
             remove_pid(ret);
         }
