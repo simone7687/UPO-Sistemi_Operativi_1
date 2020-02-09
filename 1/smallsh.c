@@ -98,6 +98,11 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     }
     if (pid == (pid_t) 0)           /* processo figlio */
     {
+        // Informazioni sul fatto che il comando è terminato (smallsh) #2
+        if(where == BACKGROUND)
+        {
+            printf("\n\nprocesso background [%d]\n", getpid());
+        }
         /* esegue il comando il cui nome e' il primo elemento di cline,
         passando cline come vettore di argomenti */
 
