@@ -148,8 +148,6 @@ void runcommand(char **cline,int where)	/* esegue un comando */
 void sigint_handler(int sig)
 {
     wait_child();
-    // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
-    setenv("BPID", "", 0);
 }
 void wait_child()
 {
