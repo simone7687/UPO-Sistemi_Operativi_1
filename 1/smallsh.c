@@ -9,14 +9,11 @@ char prompt[MAXBUF];
 
 int fd = 0; /* file */
 pid_t pid;
-void sigint_handler (int sig);  /* CTRL-C */
-void wait_child();   /* Aspetta eventuali figlio morti e informazioni sul fatto che il comando è terminato #2 */
-// Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
-void print_pid(const char * name);  /* stampa i pid */
-void add_pid(int x);    /* aggiunge i pid */
-void remove_pid(int x);
-
-void sigint_handler(int sig);   /* chiude i processi in background attraverso CTR-C */
+void sigint_handler (int sig);
+void wait_child();
+void print_pid(const char * ev_name);
+void add_pid(int pid_int);
+void remove_pid(int pid_int);
 
 int procline(void) 	/* tratta una riga di input */
 {
@@ -86,16 +83,17 @@ int procline(void) 	/* tratta una riga di input */
     }
 }
 
-void runcommand(char **cline,int where)	/* esegue un comando */
+// Esegue un comando (cline), where: foreground o background
+void runcommand(char **cline,int where)
 {
     int exitstat,ret;
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
     if(where == FOREGROUND)
     {
-        signal(SIGINT, sigint_handler);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
+        signal(SIGINT, sigint_handler); // quando il processo corrente riceve il segnale SIGINT, il controllo deve eseguire sigint_handler
     }
     pid = fork();
-    // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
+    // Aggiungo il pid alla variabile d’ambiente BPID #18
     if (pid != (pid_t) 0)
         add_pid(pid);
     
@@ -104,9 +102,9 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         perror("smallsh: fork fallita");
         return;
     }
-    if (pid == (pid_t) 0)           /* processo figlio */
+    if (pid == (pid_t) 0)   // processo figlio
     {
-        // Informazioni sul fatto che il comando è terminato (smallsh) #2
+        // Informazioni sul fatto che il comando background avviato #2
         if(where == BACKGROUND)
         {
             printf("\n\nprocesso background [%d]\n", getpid());
@@ -114,7 +112,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         /* esegue il comando il cui nome e' il primo elemento di cline,
         passando cline come vettore di argomenti */
 
-        // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
+        // Stampo la variabile d’ambiente BPID #18
         if (strcmp(*cline, "bp") == 0)
         {
             print_pid("BPID");
@@ -132,29 +130,30 @@ void runcommand(char **cline,int where)	/* esegue un comando */
             }
         }
 
-        execvp(*cline,cline);
+        execvp(*cline,cline);   // *cline: comando (primo elemento array), cline: array completo compreso NULL 
         perror(*cline);
         exit(1);
     }
-    // Background commands (&) #1
-    else if(where == FOREGROUND)    /* processo padre */
+    // Foreground commands #1
+    else if(where == FOREGROUND)    // processo padre
     {
         ret = waitpid(pid, &exitstat, 0);
         if (ret == -1) perror("wait");
-        // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
+        // Rimuovo il pid dalla variabile d’ambiente BPID #18
         remove_pid(ret);
         // Possibilità di interrompere un comando #3
-        signal(SIGINT, SIG_DFL); // il segnale CTRL-C svolge sigint_handler
+        signal(SIGINT, SIG_DFL);    // il segnale CTRL-C svolge segnale di default
     }
     // chiusura file #4
     if(fd != 0)
         close(fd);
 }
-// Possibilità di interrompere un comando #3
+// Segnale CTRL-C Foregound #3
 void sigint_handler(int sig)
 {
     wait_child();
 }
+// Aspetta eventuali figli zombie e stampa eventuali informazioni #2
 void wait_child()
 {
     int exitstat, ret=1;
@@ -168,23 +167,24 @@ void wait_child()
                 printf("\nprocesso terminato con CTRL-C [%d]\n", ret);
             else
                 printf("\nprocesso terminato [%d]\n", ret);
-            // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
+            // Rimuovo il pid dalla variabile d’ambiente BPID #18
             remove_pid(ret);
         }
     }
 }
 
-// Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
-void print_pid(const char * name)
+// Stampa la variabile d’ambiente ev_name #18
+void print_pid(const char * ev_name)
 {
     char * value;
-    value = getenv (name);
+    value = getenv (ev_name);
     if (! value)
-        printf("%s:nullo.\n", name);
+        printf("%s:nullo.\n", ev_name);
     else
-        printf("%s%s\n", name, value);
+        printf("%s%s\n", ev_name, value);
 }
-void add_pid(int x)
+// Aggiunge il pid_int alla variabile d’ambiente BPID #18
+void add_pid(int pid_int)
 {
     char pid[10];
     char * value;
@@ -192,20 +192,21 @@ void add_pid(int x)
     memset(&pid, '\0', sizeof(pid));
     memset(&value, '\0', sizeof(value));
     memset(&buffer, '\0', sizeof(buffer));
-    sprintf(pid, "%d", x);
+    sprintf(pid, "%d", pid_int);
     value = getenv ("BPID");
     strcat(buffer, value);
     strcat(buffer, ":");
     strcat(buffer, pid);
     setenv("BPID", buffer, sizeof(buffer));
 }
-void remove_pid(int x)
+// Rimuove il pid_int dalla variabile d’ambiente BPID #18
+void remove_pid(int pid_int)
 {
     char pid[10];
     char buf[200];
     char * value = getenv ("BPID");
     memset(&buf, '\0', sizeof(buf));
-    sprintf(pid, "%d", x);
+    sprintf(pid, "%d", pid_int);
 
     char *token = strtok(value, ":");
     while (token != NULL)
