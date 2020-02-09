@@ -24,6 +24,7 @@ int procline(void) 	/* tratta una riga di input */
     int toktype;  	/* tipo del simbolo nel comando */
     int narg;		/* numero di argomenti considerati finora */
     int type;		/* FOREGROUND o BACKGROUND */
+    // Redirezione dello standard ouput su un file #4
     fd = 0;
 
     narg=0;
