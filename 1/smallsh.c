@@ -175,9 +175,9 @@ void print_pid(const char * name)
     char * value;
     value = getenv (name);
     if (! value)
-    {printf("%s:nullo.\n", name);}
+        printf("%s:nullo.\n", name);
     else
-    {printf("%s%s\n", name, value);}
+        printf("%s%s\n", name, value);
 }
 void add_pid(int x)
 {
@@ -227,5 +227,8 @@ int main()
     strncat(prompt, getenv("HOME"), 255);   //directory: PATH
 
     while(userin(prompt) != EOF)
-    {wait_child();procline();}
+    {
+        wait_child();
+        procline();
+    }
 }
