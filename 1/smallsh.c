@@ -92,7 +92,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
     if(where == FOREGROUND)
     {
-        signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
+        signal(SIGINT, sigint_handler);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
     }
     pid = fork();
     // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
@@ -144,7 +144,7 @@ void runcommand(char **cline,int where)	/* esegue un comando */
         // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
         remove_pid(ret);
         // Possibilità di interrompere un comando #3
-        signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
+        signal(SIGINT, SIG_DFL); // il segnale CTRL-C svolge sigint_handler
     }
     // chiusura file #4
     if(fd != 0)
@@ -223,8 +223,6 @@ void remove_pid(int x)
 int main()
 {
     setenv("BPID", "", 0);
-    // Possibilità di interrompere un comando #3
-    signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
     // Incitare a dare un comando (smallsh) #17
     prompt[0] = '%';
     strncat(prompt, getenv("USER"),15);     //windows: USERPROFILE
