@@ -5,6 +5,7 @@
 puntatori per scorrere i buffers */
 
 static char inpbuf[MAXBUF], tokbuf[2*MAXBUF], *ptr, *tok;
+// Redirezione dello standard ouput su un file #4
 int file_path();
 
 /* array di caratteri che hanno una interpretazione "speciale" 
@@ -89,6 +90,7 @@ int gettok(char **outptr)   /* legge un simbolo e lo mette in tokbuf */
         type = AMPERSAND; break;
         case ';':
         type = SEMICOLON; break;
+        // Redirezione dello standard ouput su un file #4
         case '>':
         type = file_path(); break;
         default:
