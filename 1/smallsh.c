@@ -9,14 +9,11 @@ char prompt[MAXBUF];
 
 int fd = 0; /* file */
 pid_t pid;
-void sigint_handler (int sig);  /* CTRL-C */
 void wait_child();   /* Aspetta eventuali figlio morti e informazioni sul fatto che il comando è terminato #2 */
 // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
 void print_pid(const char * name);  /* stampa i pid */
 void add_pid(int x);    /* aggiunge i pid */
 void remove_pid(int x);
-
-void sigint_handler(int sig);   /* chiude i processi in background attraverso CTR-C */
 
 int procline(void) 	/* tratta una riga di input */
 {
@@ -89,11 +86,6 @@ int procline(void) 	/* tratta una riga di input */
 void runcommand(char **cline,int where)	/* esegue un comando */
 {
     int exitstat,ret;
-    // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
-    if(where == FOREGROUND)
-    {
-        signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
-    }
     pid = fork();
     // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
     if (pid != (pid_t) 0)
@@ -134,21 +126,17 @@ void runcommand(char **cline,int where)	/* esegue un comando */
     // Background commands (&) #1
     else if(where == FOREGROUND)    /* processo padre */
     {
+        // L'interprete deve ignorare il segnale di interruzione solo quando è in corso un comando in foreground #3
+        signal(SIGINT, SIG_IGN);    // I segnali SIGKILL e SIGSTOP non possono essere ne' ignorati e ne' catturati
+
         ret = waitpid(pid, &exitstat, 0);
         if (ret == -1) perror("wait");
         // Tenere traccia tramite una variabile d’ambiente BPID (smallsh) #18
         remove_pid(ret);
-        // Possibilità di interrompere un comando #3
-        signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
     }
     // chiusura file #4
     if(fd != 0)
         close(fd);
-}
-// Possibilità di interrompere un comando #3
-void sigint_handler(int sig)
-{
-    wait_child();
 }
 void wait_child()
 {
@@ -218,8 +206,6 @@ void remove_pid(int x)
 int main()
 {
     setenv("BPID", "", 0);
-    // Possibilità di interrompere un comando #3
-    signal(SIGINT, sigint_handler); // il segnale CTRL-C svolge sigint_handler
     // Incitare a dare un comando (smallsh) #17
     prompt[0] = '%';
     strncat(prompt, getenv("USER"),15);     //windows: USERPROFILE
