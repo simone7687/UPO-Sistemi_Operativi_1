@@ -11,14 +11,16 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 
+#define mutex 0
+#define vouto 1
+#define pieno 2
+
 int N;          /* numero selvaggi */
 int M = 0;      /* numero porzioni */
 int NGIRI;      /* numero giri */
-int vuoto;
-int pieno;
-int mutex;
 int shmid;
-void clear(int s);  /* rimuove strutture IPC */
+int semid;
+void clear(int s);
 
 struct buffer
 {
@@ -30,12 +32,13 @@ void Cuoco()
 {
     while (1)
     {
-        down(vuoto,0);      // richiede una pentola vuota
+        down(semid, vouto);      // richiede una pentola vuota
         buf->pentola = M;   // riempi pentola
         buf->K += 1;
-        printf("Cuoco ha RIEMPITO la pentola\n");
-        up(pieno,0);        // rilascia una pentola piena
-        printf("Cuoco e' andato a DORMIRE\n");
+        printf("\nCuoco ha RIEMPITO la pentola\n");
+        printf("Cuoco è andato a dormire\n\n");
+        up(semid, pieno);        // rilascia una pentola piena
+        sleep(1);
     }
 }
 
@@ -45,14 +48,14 @@ void Selvaggio(int id)
     // Ciascun selvaggio deve mangiare NGIRI #8
     for (int i=0; i<NGIRI; i++)
     {
-        down(mutex,0);      // entra in sezione critica
-        printf("Selvaggio %d ENTRA in sezione critica\n", id);
+        down(semid, mutex);      // entra in sezione critica
+        printf("Selvaggio %d è ENTRATO in sezione critica\n", id);
         // se non ci sono porzioni
         if(buf->pentola == 0)
         {
-            printf("Selvaggio %d ASPETTA cuoco\n", id);
-            up(vuoto,0);    // rilascia una pentola vuota
-            down(pieno,0);  // richiede una pentola piena
+            printf("Selvaggio %d ASPETTA il cuoco\n", id);
+            up(semid, vouto);    // rilascia una pentola vuota
+            down(semid, pieno);  // richiede una pentola piena
         }
         // se la pentola contiene almeno una porzione, se ne appropria
         if(buf->pentola > 0)
@@ -61,7 +64,7 @@ void Selvaggio(int id)
             printf("Selvaggio %d ha MANGIATO, per essere sazio mancano: %d\n", id, NGIRI-i-1);
             printf("Porzioni rimanenti: %d\n", buf->pentola);
         }
-        up(mutex,0);      // esce dalla sezione critica
+        up(semid, mutex);      // esce dalla sezione critica
         printf("Selvaggio %d ESCE della sezione critica\n", id);
         sleep(1);
     }
@@ -84,26 +87,20 @@ int main(int argc, char *argv[])
         printf("numero selvaggi = %d  \nnumero porzioni = %d  \nnumero giri     = %d\n", N, M, NGIRI);
 
     // Semafori (lo 0 nel seconda "colonna": il semaforo è condiviso tra thread (uguale a 0) o processi (diverso da 0))
-        if ((mutex = semget(IPC_PRIVATE, 1, 0666)) == -1)   // 1: dimensione vettore di semafori, 0666: accesso read /write  
+        if ((semid = semget(IPC_PRIVATE, 3, 0666)) == -1)   // 3: dimensione vettore di semafori, 0666: accesso read /write  
             perror("semget");
-        seminit(mutex, 0, 1);   //0:down
-
-        if ((vuoto = semget(IPC_PRIVATE, 1, 0666)) == -1)
-            perror("semget");
-        seminit(vuoto, 1, N);   //1:up
-
-        if ((pieno = semget(IPC_PRIVATE, 1, 0666)) == -1)
-            perror("semget");
-        seminit(pieno, 0, 0);
+        seminit(semid, mutex, 1);
+        seminit(semid, vouto, 0);
+        seminit(semid, pieno, 0);
 
     // Memoria condivisa
-        if ((shmid = shmget(IPC_PRIVATE,sizeof(struct buffer),0666))==-1)
+        if ((shmid = shmget(IPC_PRIVATE, sizeof(struct buffer), 0666))==-1)
             perror("shmget");
         buf = (struct buffer *) shmat(shmid,0,0);
         if (buf == (void *)-1) perror("shmat");
 
         sa.sa_handler = clear;
-        sigaction(SIGINT,&sa,NULL);
+        sigaction(SIGINT, &sa, NULL);
 
         buf->pentola = M;
         buf->K = 0;
@@ -126,22 +123,21 @@ int main(int argc, char *argv[])
 
     // Attesa processi
         for(int i=0; i<N; i++)
-            pid = wait(NULL);
-
-        // Contare quante volte il cuoco riempie la pentola (selvaggi) #10
+            pid = wait(NULL);        
         kill(pid_cuoco, 1);
         wait(NULL);
+        
+    // Contare quante volte il cuoco riempie la pentola (selvaggi) #10
         printf("Pentole riempite: %d\n", buf->K);   // eccetto la prima volta
         printf("Porzioni rimanenti: %d\n", buf->pentola);
 
         clear(0);
 }
 
+// rimuove strutture IPC
 void clear(int s)
 {
-    if (semctl(mutex, 0, IPC_RMID) == -1) perror("semctl");
-    if (semctl(pieno, 0, IPC_RMID) == -1) perror("semctl");
-    if (semctl(vuoto, 0, IPC_RMID) == -1) perror("semctl");
+    if (semctl(semid, 0, IPC_RMID) == -1) perror("semctl");
     if (shmctl(shmid, IPC_RMID, 0) == -1) perror("shmctl");
     exit(s);
 }
