@@ -20,7 +20,9 @@ int seminit(int semid, int semnum, int initval) /* inizializzazione con initval 
     union semun arg;
 
     arg.val=initval;
-    return semctl(semid,semnum,SETVAL,arg);
+    r=semctl(semid,semnum,SETVAL,arg);
+    if (r==-1) perror("semop in up");
+    return r;
 }
 
 int down(int semid, int semnum) /* operazione DOWN sulla componente semnum di semid */
