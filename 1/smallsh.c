@@ -148,11 +148,13 @@ void runcommand(char **cline,int where)
     if(fd != 0)
         close(fd);
 }
+
 // Segnale CTRL-C Foregound #3
 void sigint_handler(int sig)
 {
     wait_child();
 }
+
 // Aspetta eventuali figli zombie e stampa eventuali informazioni #2
 void wait_child()
 {
@@ -166,7 +168,7 @@ void wait_child()
             if (WTERMSIG(exitstat) == SIGINT)   // WTERMSIG: riporta il segnale che ha causato il termine del processo figlio
                 printf("\nprocesso terminato con CTRL-C [%d]\n", ret);
             else
-                printf("\nprocesso terminato [%d]\n", ret);
+                printf("\nprocesso background terminato [%d]\n\n", ret);
             // Rimuovo il pid dalla variabile d’ambiente BPID #18
             remove_pid(ret);
         }
@@ -183,6 +185,7 @@ void print_pid(const char * ev_name)
     else
         printf("%s%s\n", ev_name, value);
 }
+
 // Aggiunge il pid_int alla variabile d’ambiente BPID #18
 void add_pid(int pid_int)
 {
@@ -199,6 +202,7 @@ void add_pid(int pid_int)
     strcat(buffer, pid);
     setenv("BPID", buffer, sizeof(buffer));
 }
+
 // Rimuove il pid_int dalla variabile d’ambiente BPID #18
 void remove_pid(int pid_int)
 {
