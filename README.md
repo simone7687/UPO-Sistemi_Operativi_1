@@ -1,4 +1,4 @@
-# ESERCIZI PRATICI Corso di Sistemi Operativi 1 A.A. 2018-2019 – Versione 1 (da consegnare e discutere entro la sessione estiva).
+# ESERCIZI PRATICI Corso di Sistemi Operativi 1 A.A.
 
 ## 1.Utilizzando soltanto gli strumenti presentati nel corso, modificare il semplice interprete di comandi "smallsh" presentato nelle esercitazioni in modo da: 
 * Ammettere la possibilità di lanciare comandi in background con la notazione: ```comando &``` 
